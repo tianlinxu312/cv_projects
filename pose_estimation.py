@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import math
 
 
 class PoseTracker:
@@ -16,6 +17,7 @@ class PoseTracker:
                                        min_tracking_confidence=self.track_confidence)
         self.mp_draw = mp.solutions.drawing_utils
         self.results = None
+        self.lm_list = []
 
     def find_pose(self, img, draw=True):
         '''
@@ -34,14 +36,12 @@ class PoseTracker:
 
         return img
 
-    def get_position(self, img, lmk_no=4):
+    def get_position(self, img):
         '''
         :param img: input img
-        :param lmk_no: identify a specific landmark by plotting it larger (int: 0-20 or None)
         :return:
         '''
-
-        lm_list = []
+        self.lm_list = []
         if self.results.pose_landmarks:
             for id, lm in enumerate(self.results.pose_landmarks.landmark):
                 # lm is (x, y, z) real-world 3D coordinates in meters with
@@ -49,11 +49,40 @@ class PoseTracker:
                 # we now try to find the specific pixel position
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
-                lm_list.append([id, cx, cy])
-                # we can try to identify a specific landmark on image
-                if id == lmk_no:
-                    cv2.circle(img, (cx, cy), 10, (255, 0, 255), cv2.FILLED)
-        return lm_list
+                self.lm_list.append([id, cx, cy])
+        return self.lm_list
+
+    def get_angle(self, img, p1, p2, p3, draw=True):
+        _, x1, y1 = self.lm_list[p1]
+        _, x2, y2 = self.lm_list[p2]
+        _, x3, y3 = self.lm_list[p3]
+
+        # compute the angle
+        angle = math.atan2(y3-y2, x3-x2) - math.atan2(y1-y2, x1-x2)
+        angle = math.degrees(angle)
+
+        if angle < 0:
+            angle += 360
+
+        red = [0, 0, 255]
+        white = [255, 255, 255]
+
+        if draw:
+            cv2.line(img, (x1, y1), (x2, y2), (255, 255, 255), 3)
+            cv2.line(img, (x3, y3), (x2, y2), (255, 255, 255), 3)
+            cv2.circle(img, (x1, y1), 15, red, cv2.FILLED)
+            cv2.circle(img, (x2, y2), 15, red, cv2.FILLED)
+            cv2.circle(img, (x3, y3), 15, red, cv2.FILLED)
+
+            cv2.circle(img, (x1, y1), 13, white, cv2.FILLED)
+            cv2.circle(img, (x2, y2), 13, white, cv2.FILLED)
+            cv2.circle(img, (x3, y3), 13, white, cv2.FILLED)
+
+            cv2.circle(img, (x1, y1), 8, red, cv2.FILLED)
+            cv2.circle(img, (x2, y2), 8, red, cv2.FILLED)
+            cv2.circle(img, (x3, y3), 8, red, cv2.FILLED)
+
+        return angle
 
 
 def main():
