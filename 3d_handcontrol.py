@@ -44,7 +44,7 @@ class Webcam:
         return video_writer
 
 
-class Display:
+class HandControl3D:
     def __init__(self,w_cam=1280, h_cam=720):
         self.w_cam = w_cam
         self.h_cam = h_cam
@@ -93,7 +93,6 @@ class Display:
         self.video_writer = self.cap.write_video(self.w_cam, self.h_cam)
 
     def init_obj(self, obj_paths=[], lowpoly_docs=[]):
-        # assign shapes
         if obj_paths:
             for path in obj_paths:
                 path_p = path.split("/")
@@ -148,13 +147,12 @@ class Display:
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         glTexImage2D(GL_TEXTURE_2D, 0, 3, ix, iy, 0, GL_RGBA, GL_UNSIGNED_BYTE, img_data)
-        # glutPostRedisplay()
 
         # draw background
         glBindTexture(GL_TEXTURE_2D, self.texture_background)
         glPushMatrix()
         glTranslatef(0.0, 0.0, -10.0)
-        self._draw_background()
+        self.draw_background()
         glPopMatrix()
 
         self.add_obj(up_img)
@@ -170,7 +168,7 @@ class Display:
         glutSwapBuffers()
 
 
-    def display_obj(self, obj_id=0, angle_add=1, pos=[0.5, -0.5, -0.8], z_max=140, rotation=[0, 1, 0]):
+    def draw_obj(self, obj_id=0, angle_add=1, pos=[0.5, -0.5, -0.8], z_max=140, rotation=[0, 1, 0]):
         glPushMatrix()
         glTranslatef(pos[0], pos[1], pos[2])
         self.scale_and_centre(-4, 4, -2, 2, 5, z_max)
@@ -196,8 +194,8 @@ class Display:
                 self.z_max = 1700
                 self.rotation = [0, 1, 0]
                 self.obj_z_range = [5, 2000]
-                self.display_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
-                                 z_max=self.z_max, rotation=self.rotation)
+                self.draw_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
+                              z_max=self.z_max, rotation=self.rotation)
 
             if fingers[1] and fingers[2] and sum(fingers) == 2:
                 self.display_id = sum(fingers) - 1
@@ -206,8 +204,8 @@ class Display:
                 self.z_max = 150
                 self.rotation = [0, 1, 1]
                 self.obj_z_range = [5, 400]
-                self.display_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
-                                 z_max=self.z_max, rotation=self.rotation)
+                self.draw_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
+                              z_max=self.z_max, rotation=self.rotation)
 
             if fingers[1] and fingers[2] and fingers[3] and fingers[4] and sum(fingers) == 5:
                 self.display_id= 10
@@ -216,8 +214,8 @@ class Display:
                 self.z_max = 30
                 self.obj_z_range = [10, 100]
                 self.rotation = [0, 1, 1]
-                self.display_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
-                                 z_max=self.z_max, rotation=self.rotation)
+                self.draw_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
+                              z_max=self.z_max, rotation=self.rotation)
 
             if not self.display_id == -100:
                 if fingers[0] and fingers[1] and sum(fingers) == 2:
@@ -230,10 +228,10 @@ class Display:
                     size = int(np.interp(length, hand_range, [self.obj_z_range[1], self.obj_z_range[0]]))
                     self.z_max = size
 
-                self.display_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
-                                 z_max=self.z_max, rotation=self.rotation)
+                self.draw_obj(obj_id=self.display_id, angle_add=self.angle_add, pos=self.xyz_position,
+                              z_max=self.z_max, rotation=self.rotation)
 
-    def _draw_background(self):
+    def draw_background(self):
         # draw background
         glEnable(GL_TEXTURE_2D)
         glBegin(GL_QUADS)
@@ -247,36 +245,6 @@ class Display:
         glVertex3f(-4.0, 3.0, 0.0)
         glEnd()
         glDisable(GL_TEXTURE_2D)
-
-    def display(self):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glEnable(GL_TEXTURE_2D)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-
-        # Set Projection Matrix
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluOrtho2D(0, self.w_cam, self.h_cam, 0)
-
-        # Switch to Model View Matrix
-        glColor3f(1, 1, 1)
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-
-        # Draw textured Quads
-        glBegin(GL_QUADS)
-        glTexCoord2f(0.0, 0.0)
-        glVertex2f(0.0, 0.0)
-        glTexCoord2f(1.0, 0.0)
-        glVertex2f(self.w_cam, 0.0)
-        glTexCoord2f(1.0, 1.0)
-        glVertex2f(self.w_cam, self.h_cam)
-        glTexCoord2f(0.0, 1.0)
-        glVertex2f(0.0, self.h_cam)
-        glEnd()
-
-        glFlush()
-        glutSwapBuffers()
 
     def scale_and_centre(self, xmin, xmax, ymin, ymax, zmin, zmax):
         xs = (xmax - xmin) / 2.0
@@ -321,7 +289,7 @@ def main():
     w_cam, h_cam = 1280, 720
     # ----------------------
 
-    menu = Display(w_cam, h_cam)
+    menu = HandControl3D(w_cam, h_cam)
 
     menu.init_window(win_text="OpenGL + OpenCV")
 
@@ -333,14 +301,16 @@ def main():
 
     def keyboard(key, x, y):
         # Allow to quit by pressing 'Esc' or 'q'
+        # I'm missing some functions in the library so I can't really exit the loop
         if key == b'a':
-            sys.exit(0)
+            sys.exit()
         if key == b'q':
             menu.video_writer.release()
 
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glutDisplayFunc(menu.render_scene)
     glutIdleFunc(menu.render_scene)
+    # the following function doesn't exist in my library
     # glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS)
     glutKeyboardFunc(keyboard)
 
