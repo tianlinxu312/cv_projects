@@ -1,5 +1,5 @@
 import os
-from base_modules import HandTracker
+import handtracking as ht
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -20,7 +20,7 @@ def main():
             overlay_list.append(img)
 
     header = overlay_list[0]
-    draw_color = utils.color_picker("lime_green")
+    draw_color = utils.color_picker("light_pink")
     cap = cv2.VideoCapture(0)
 
     # ----------------------
@@ -30,18 +30,11 @@ def main():
     cap.set(4, h_cam)
     xp, yp = 0, 0
 
-    frame_rate = 25
-    resolution = (w_cam, h_cam)
-    path = '../cv_videos/virtual_painter7.mp4'
-
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    video_writer = cv2.VideoWriter(path, fourcc, frame_rate, resolution)
-
     # create a drawing canvas to keep the drawings
     # it's outside the loop so it doesn't get refreshed after each iter
     drawing_canvas = np.zeros((720, 1280, 3), np.uint8)
     # import hand tracking module
-    hand_tracker = HandTracker(detect_con=0.75)
+    hand_tracker = ht.HandTracker(detect_con=0.80)
     thickness_per = 15
     thickness_position = (18, 200)
     per_position = (55, 240)
@@ -72,9 +65,8 @@ def main():
         img[:head_h, :head_w, :] = header
 
         # find hand landmarks
-        img = hand_tracker.find_hands(img, draw=True)
+        img = hand_tracker.find_hands(img, draw=False)
         lm_list = hand_tracker.get_position(img)
-        mode_color = utils.color_picker("purple")
 
         if lm_list:
             # find the tip of thumb, index and middle fingers
@@ -112,12 +104,9 @@ def main():
                 else:
                     cv2.circle(img, ((index1 + middle1) // 2, index2), 25, draw_color, 5)
 
-                cv2.rectangle(img, (950, 160), (1260, 220), mode_color, 3)
-                cv2.putText(img, "Selection Mode", (970, 200), cv2.FONT_HERSHEY_COMPLEX, 1,
-                            mode_color, 2)
 
-            # control brush thickness
-            if fingers[0] and fingers[1] and fingers[2] and not fingers[3] and not fingers[4]:
+
+            if fingers[0] and fingers[1] and fingers[2] and fingers[3] and fingers[4]:
                 length = math.hypot(index1 - thumb1, index2 - thumb2)
                 # length range between index finger and thumb: 15 - 335
                 hand_range = [15, 335]
@@ -127,18 +116,13 @@ def main():
                                 utils.color_picker("white"), 3)
                     cv2.putText(img, str(thickness_per) + "%", per_position, cv2.FONT_HERSHEY_COMPLEX, 1,
                                 utils.color_picker("white"), 3)
-                    cv2.line(img, thick_line_left, thick_line_right, utils.color_picker("white"),
-                             thickness=thickness_per)
+                    cv2.line(img, thick_line_left, thick_line_right, utils.color_picker("white"), thickness=thickness_per)
                 else:
                     cv2.putText(img, "Thickness", thickness_position, cv2.FONT_HERSHEY_COMPLEX, 1,
                                 draw_color, 3)
                     cv2.putText(img, str(thickness_per) + "%", per_position, cv2.FONT_HERSHEY_COMPLEX, 1,
                                 draw_color, 3)
                     cv2.line(img, thick_line_left, thick_line_right, draw_color, thickness=thickness_per)
-
-                cv2.rectangle(img, (950, 160), (1260, 220), mode_color, 3)
-                cv2.putText(img, "Brush Thickness", (960, 200), cv2.FONT_HERSHEY_COMPLEX, 1,
-                            mode_color, 2)
 
             # single index finger for drawing
             if fingers[1] and not fingers[2] and not fingers[0] and not fingers[3] and not fingers[4]:
@@ -153,10 +137,6 @@ def main():
                     cv2.line(img, (xp, yp), (index1, index2), draw_color, thickness=thickness_per)
                 cv2.line(drawing_canvas, (xp, yp), (index1, index2), draw_color, thickness=thickness_per)
 
-                cv2.rectangle(img, (950, 160), (1260, 220), mode_color, 3)
-                cv2.putText(img, "Drawing Mode", (995, 200), cv2.FONT_HERSHEY_COMPLEX, 1,
-                            mode_color, 2)
-
             xp, yp = index1, index2
 
         img_gray = cv2.cvtColor(drawing_canvas, cv2.COLOR_BGR2GRAY)
@@ -166,15 +146,7 @@ def main():
         img = cv2.bitwise_or(img, drawing_canvas)
 
         cv2.imshow("Image", img)
-
-        video_writer.write(img)
-
-        if cv2.waitKey(1) == ord('a'):
-            break
-
-    cap.release()
-    video_writer.release()
-    cv2.destroyAllWindows()
+        cv2.waitKey(1)
 
 
 if __name__ == '__main__':

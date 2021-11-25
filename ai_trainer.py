@@ -7,7 +7,7 @@ import math
 import utils
 
 # ----------------------
-w_cam, h_cam = 640, 480
+w_cam, h_cam = 1280, 720
 # ----------------------
 
 
@@ -28,7 +28,7 @@ def main():
         img = detector.find_pose(img, draw=False)
         # only track hand number 1 and use a larger dot for specific landmark
         landmarks = detector.get_position(img)
-        angle_range = [190, 340]
+        angle_range = [190, 300]
 
         if landmarks:
             # left arm 11, 13, 15
