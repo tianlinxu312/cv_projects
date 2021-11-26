@@ -16,6 +16,11 @@ from threading import Thread
 import sys
 
 
+'''
+This class is adapted from some code I took from the Internet. But I closed the tab and can't remember the author. 
+If this is your code, please contact me.  
+I will add the source.  
+'''
 class Webcam:
     def __init__(self):
         self.video_capture = cv2.VideoCapture(0)
@@ -267,15 +272,15 @@ def main():
     w_cam, h_cam = 1280, 720
     # ----------------------
 
-    menu = HandControl3D(w_cam, h_cam, False)
+    control = HandControl3D(w_cam, h_cam, True)
 
-    menu.init_window(win_text="OpenGL + OpenCV")
+    control.init_window(win_text="OpenGL + OpenCV")
 
     path = [ '3d_objs/bank.obj',
              '3d_objs/10870_turkey_leg_v1_L3.obj']
-    menu.init_obj(obj_paths=path, lowpoly_docs=["bank.obj"])
+    control.init_obj(obj_paths=path, lowpoly_docs=["bank.obj"])
 
-    menu.init_webcam()
+    control.init_webcam()
 
     def keyboard(key, x, y):
         # Allow to quit by pressing 'Esc' or 'q'
@@ -283,16 +288,16 @@ def main():
         if key == b'a':
             sys.exit()
         if key == b'q':
-            menu.video_writer.release()
+            control.video_writer.release()
 
     glClearColor(0.0, 0.0, 0.0, 1.0)
-    glutDisplayFunc(menu.render_scene)
-    glutIdleFunc(menu.render_scene)
+    glutDisplayFunc(control.render_scene)
+    glutIdleFunc(control.render_scene)
     # the following function doesn't exist in my library
     # glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS)
     glutKeyboardFunc(keyboard)
 
-    menu.init_gl()
+    control.init_gl()
     glutMainLoop()
 
 
