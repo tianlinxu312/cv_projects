@@ -36,7 +36,7 @@ class Webcam:
     def write_video(self, w_cam, h_cam):
         frame_rate = 25
         resolution = (w_cam, h_cam)
-        path = '../cv_videos/3dhand_control.mp4'
+        path = '../cv_videos/3dhand_control3.mp4'
 
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         video_writer = cv2.VideoWriter(path, fourcc, frame_rate, resolution)
@@ -45,9 +45,10 @@ class Webcam:
 
 
 class HandControl3D:
-    def __init__(self,w_cam=1280, h_cam=720):
+    def __init__(self,w_cam=1280, h_cam=720, draw_hand_tracking=True):
         self.w_cam = w_cam
         self.h_cam = h_cam
+        self.draw_hand_tracking = draw_hand_tracking
         self.cap = None
         self.box = None
         self.texture_background = None
@@ -63,7 +64,7 @@ class HandControl3D:
         self.z_max = 0
         self.rotation = [0, 0, 0]
         self.obj_z_range = [5, 50]
-        self.angle_add = 0.0
+        self.angle_add = 1.0
         self.video_writer = None
 
     def init_window(self, win_text="OpenGL + OpenCV"):
@@ -103,29 +104,6 @@ class HandControl3D:
                 self.obj_list.append(self.box)
         self.num_objs = len(self.obj_list)
 
-    def add_buttons(self, image):
-        folder_path = "./imgs/buttons"
-        button_list = os.listdir(folder_path)
-
-        for path in button_list:
-            if path[-4:] == ".png":
-                full_path = os.path.join(folder_path, path)
-                button = cv2.imread(full_path)
-                head_h, head_w, head_c = button.shape
-
-                if path == "left.png":
-                    image[300:300+head_h, 300:300+head_w, :] = button
-
-                if path == "right.png":
-                    image[300:300+head_h, 100:100+head_w, :] = button
-
-                if path == "up.png":
-                    image[100:100+head_h, 200:200+head_w, :] = button
-
-                if path == "down.png":
-                    image[400:400+head_h, 200:200+head_w, :] = button
-
-        return image
 
     def render_scene(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -133,7 +111,7 @@ class HandControl3D:
         # get image from webcam
         im = self.cap.get_current_frame()
         up_img = cv2.flip(im, 1)
-        image = self.hand_tracker.find_hands(up_img, draw=True)
+        image = self.hand_tracker.find_hands(up_img, draw=self.draw_hand_tracking)
         image = cv2.flip(image, 0)
 
         # image = self.add_buttons(image)
@@ -155,7 +133,7 @@ class HandControl3D:
         self.draw_background()
         glPopMatrix()
 
-        self.add_obj(up_img)
+        self.hand_control(up_img)
         glColor3f(1, 1, 1)
 
         # grab a screenshot
@@ -182,7 +160,7 @@ class HandControl3D:
         glPopMatrix()
 
 
-    def add_obj(self, image):
+    def hand_control(self, image):
         lm_list = self.hand_tracker.get_position(image)
 
         if lm_list:
@@ -208,7 +186,7 @@ class HandControl3D:
                               z_max=self.z_max, rotation=self.rotation)
 
             if fingers[1] and fingers[2] and fingers[3] and fingers[4] and sum(fingers) == 5:
-                self.display_id= 10
+                self.display_id= 100000
                 self.angle_add = 1.0
                 self.xyz_position = [0.0, 1.0, -5.5]
                 self.z_max = 30
@@ -218,13 +196,13 @@ class HandControl3D:
                               z_max=self.z_max, rotation=self.rotation)
 
             if not self.display_id == -100:
-                if fingers[0] and fingers[1] and sum(fingers) == 2:
+                if fingers[0] and fingers[1] and fingers[2] and sum(fingers) == 3:
                     thumb1, thumb2 = lm_list[4][1:]
                     index1, index2 = lm_list[8][1:]
 
                     length = int(math.hypot(int(index1) - int(thumb1), int(index2) - int(thumb2)))
                     # length range between index finger and thumb: 15 - 335
-                    hand_range = [30, 335]
+                    hand_range = [30, 315]
                     size = int(np.interp(length, hand_range, [self.obj_z_range[1], self.obj_z_range[0]]))
                     self.z_max = size
 
@@ -260,7 +238,7 @@ class HandControl3D:
         # RENDER OBJECT
         glTranslate(0, 0, -10)
         glRotate(self.angle, 1, 1, 1)
-        self.angle += 1
+        self.angle += self.angle_add
 
         # 8 vertices for a cube
         vertices = ((1, -1, -1), (1, 1, -1), (-1, 1, -1), (-1, -1, -1), (1, -1, 1), (1, 1, 1), (-1, -1, 1), (-1, 1, 1))
@@ -289,7 +267,7 @@ def main():
     w_cam, h_cam = 1280, 720
     # ----------------------
 
-    menu = HandControl3D(w_cam, h_cam)
+    menu = HandControl3D(w_cam, h_cam, False)
 
     menu.init_window(win_text="OpenGL + OpenCV")
 
