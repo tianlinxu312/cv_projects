@@ -1,5 +1,5 @@
 # Computer Vision projects
-This repo contains some small computer vision projects for fun.  For more details and demonstrations about the projects, please see [here](https://tianlinxu312.github.io/blog/).
+This repository contains some small computer vision projects for fun.  For more details and demonstrations about the projects, please see [here](https://tianlinxu312.github.io/blog/).
 
 # List of Projects
 Some base modules and projects are re-implementations based on material taught in [Advanced Computer Vision with Python - freeCodeCamp.org](https://www.youtube.com/watch?v=01sAkU_NvOY&t=2s)
