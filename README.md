@@ -1,10 +1,8 @@
 # Computer Vision projects
-
-Some base modules and projects are re-implementations based on material taught in [Advanced Computer Vision with Python - freeCodeCamp.org](https://www.youtube.com/watch?v=01sAkU_NvOY&t=2s)
+This repo contains some small computer vision projects for fun.  For more details and demonstrations about the projects, please see [here](https://tianlinxu312.github.io/blog/).
 
 # List of Projects
-
-For more details and demonstrations about the projects, please see [here](https://tianlinxu312.github.io/blog/).
+Some base modules and projects are re-implementations based on material taught in [Advanced Computer Vision with Python - freeCodeCamp.org](https://www.youtube.com/watch?v=01sAkU_NvOY&t=2s)
 
 - [Gesture volume control](https://github.com/tianlinxu312/cv_projects/blob/master/gesture_volume_control.py)
 - [AI trainer](https://github.com/tianlinxu312/cv_projects/blob/master/ai_trainer.py)
