@@ -1,4 +1,4 @@
-# Computer Vision projects
+# Computer Vision Projects
 This repository contains some small computer vision projects for fun.  For more details and demonstrations for the projects, please see [here](https://tianlinxu312.github.io/blog/).
 
 # List of Projects
