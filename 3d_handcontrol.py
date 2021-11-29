@@ -1,9 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-import pygame
-from pygame.locals import *
-import pygame.camera
 import cv2
 import mediapipe as mp
 import numpy as np
